@@ -6,3 +6,5 @@ v1.0 - Servidor abre portas para conexões do client e as aceita e envia mensage
 v1.1 - GUI adicionada, agora os servidor e o client mandam e recebem mensagens um do outro/um para o outro em tempo real
 
 v2.0 - GUI removida do servidor e agora ele apenas recebe as mensagens do client 1 e as envia para o client 2 e vice versa (somente 2 clients)
+
+v2.1 - Servidor agora aceita mais conexões

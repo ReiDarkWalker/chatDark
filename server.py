@@ -1,44 +1,42 @@
 import socket
-import threading
+import select
 import time
+from typing import List
 
-#definindo host e porta
+# definindo host e porta
 HOST = 'localhost'
 PORT = 80
 
-#criando o objeto do socket
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((HOST, PORT))
-s.listen(2) #espera por até 2 conexões (dois clients)
+# criando o objeto do socket
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind((HOST, PORT))
 
 print('[°] Servidor Ligado')
 
 print('Aguardando conexões...')
 
-#cria o objeto socket do primeiro client, captura seu ip e cria um log no servidor de conexão
-client_conn1, client_address1 = s.accept()
-host, port = client_address1
-timenow = time.strftime('[%H:%M:%S]')
-print(f'{timenow} {host} se conectou pela porta: {port}')
+conn_list = [] # type: List[socket.socket]
 
-#cria o objeto socket do segundo client, captura seu ip e cria um log no servidor de conexão
-client_conn2 ,client_address2 = s.accept()
-host, port = client_address2
-timenow = time.strftime('[%H:%M:%S]')
-print(f'{timenow} {host} se conectou pela porta: {port}')
+server.listen() # escuta por novas conexões dos clients
+
 
 while True:
-    
-    def envio1(): #recebe o que o primeiro client envia, checa se ele está enviando algo, se sim, o envia para o segundo client
-        data_c1 = client_conn1.recv(1024) 
-        if data_c1:
-            client_conn2.sendall(data_c1)
+    readable, writable_not_in_use, exceptions_not_in_use = select.select([server, * conn_list], [], [], 0.016)
+    readable = readable # type: List[socket.socket]
 
-    def envio2(): #recebe o que o segundo client envia, checa se ele está enviando algo, se sim, o envia para o primeiro client
-        data_c2 = client_conn2.recv(1024)
-        if data_c2:
-            client_conn1.sendall(data_c2)
+    for author in readable:
+        if author is server:
+            conn, addr = server.accept() # checa se as coisas que estão a ser recebidas são novas conexões e as aceita
+            host, port = addr
 
-    #coloca os 2 envios em threads separadas para poderem enviar normalmente sem limitações
-    threading.Thread(target=envio1).start()
-    threading.Thread(target=envio2).start()
+            timenow = time.strftime('[%H:%M:%S]')
+            print(f'{timenow} {host} se  conectou pela porta: {port}')
+
+            conn_list.append(conn)
+        else:
+            data = author.recv(1024) # checa se as coisas que estão a ser recebidas são mensagens e as guarda na variavel data
+
+            if data:
+                for client in conn_list:
+                    if client != author:
+                        client.sendall(data) # envia as mensagens para todos no servidor exceto para o transmissor da mesma
