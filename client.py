@@ -1,5 +1,6 @@
 import tkinter as tk
 import socket
+import ssl
 import threading
 
 #define o host e a porta
@@ -7,13 +8,18 @@ HOST = 'localhost'
 PORT = 80
 
 #cria o objeto do socket e se conecta ao servidor
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((HOST, PORT))
+sock_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+#cria o objeto do socket como uma conexão segura e criptografada utilizando da biblioteca ssl
+context = ssl.create_default_context()
+ssl_client = context.wrap_socket(sock_client, server_side = False)
+
+ssl_client.connect((HOST, PORT))
 
 #cria a função de receber mensagens
 def receber_mensagem():
     while True:
-        data = s.recv(1024).decode('utf-8')
+        data = ssl_client.recv(1024).decode('utf-8')
         
         if not data:
             break
@@ -30,7 +36,7 @@ def enviar_mensagem(event=None):
     if not mensagem:
         return
     
-    s.sendall(mensagem.encode('utf-8'))
+    ssl_client.sendall(mensagem.encode('utf-8'))
     
     mensagens.configure(state=tk.NORMAL)
     mensagens.insert(tk.END, "Você: " + mensagem + "\n")

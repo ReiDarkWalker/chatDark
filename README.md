@@ -8,3 +8,5 @@ v1.1 - GUI adicionada, agora os servidor e o client mandam e recebem mensagens u
 v2.0 - GUI removida do servidor e agora ele apenas recebe as mensagens do client 1 e as envia para o client 2 e vice versa (somente 2 clients)
 
 v2.1 - Servidor agora aceita mais conexões
+
+v2.2 - Conexão agora segura e criptografada
